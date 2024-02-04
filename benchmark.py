@@ -52,11 +52,11 @@ def benchmark_receiver(module, host: str, port: int) -> cryterion.Cryterion:
 
 
 if __name__ == "__main__":
-    import benchmark_ascon
+    import benchmark_ascon as benchmark_module
 
     PORT = 8000
     if (HOST := os.getenv("RECEIVER")) is not None:
-        benchmark_sender(benchmark_ascon, HOST, PORT)
+        benchmark_sender(benchmark_module, HOST, PORT)
     else:
         HOST = "0.0.0.0"
-        benchmark_receiver(benchmark_ascon, HOST, PORT)
+        benchmark_receiver(benchmark_module, HOST, PORT)

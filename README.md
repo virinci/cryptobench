@@ -21,6 +21,7 @@ $ RECEIVER='192.168.1.12' PLAINTEXT=1000 python3 benchmark.py
 ## To-Do
 - [x] Print only has encryption function, no decryption.
 - [x] Abstract out benchmarking functionality from each algorithm
+- [ ] Fix Klein decryption
 - [ ] Camellia code is not in Python.
 - [ ] Klein only has encryption function, no decryption.
 - [ ] Rectangle code is not in Python.

@@ -14,11 +14,12 @@ $ python3 benchmark_speck.py
 $ RECEIVER='192.168.1.12' PLAINTEXT=1000 python3 benchmark_speck.py
 ```
 
-## Issues
+## To-Do
 - [ ] Camellia code is not in Python.
 - [ ] Klein only has encryption function, no decryption.
-- [ ] Print only has encryption function, no decryption.
+- [x] Print only has encryption function, no decryption.
 - [ ] Rectangle code is not in Python.
+- [x] Abstract out benchmarking functionality from each algorithm
 
 ## Dependencies
 - `pip install hwcounter`

@@ -33,13 +33,14 @@ $ RECEIVER='192.168.1.12' PLAINTEXT=1000 python3 benchmark.py
 
 ## References
 - <https://singleboardbytes.com/289/connect-wi-fi-enable-ssh-without-monitor-raspberry-pi.htm>
-- <https://github.com/Daksh-Axel/Midori128-64/tree/main/App>
 - [Midori: A Block Cipher for Low Energy](https://eprint.iacr.org/2015/1142.pdf)
 
 ### SIMON and SPECK
-- <https://github.com/inmcm/Simon_Speck_Ciphers/tree/master/Python/simonspeckciphers>
 - [The SIMON and SPECK Families of Lightweight Block Ciphers](https://eprint.iacr.org/2013/404)
 - <https://github.com/bozhu/NSA-ciphers/>
 
-### Algorithms Source
-- [ascon](https://github.com/meichlseder/pyascon/)
+### Algorithm Implementation Source
+- ascon: <https://github.com/meichlseder/pyascon/>
+- midori: <https://github.com/Daksh-Axel/Midori128-64/tree/main/App>
+- simon: <https://github.com/inmcm/Simon_Speck_Ciphers/tree/master/Python/simonspeckciphers>
+- speck: <https://github.com/inmcm/Simon_Speck_Ciphers/tree/master/Python/simonspeckciphers>

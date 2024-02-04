@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-
-
 def num2bits(num: int, bitlength: int) -> list[int]:
     bits = []
     for i in range(bitlength):
@@ -32,7 +29,9 @@ _sbox = (
 )
 
 
-def enc(plaintext, long_key, short_key, block_bits=48):
+def encrypt(plaintext, long_key, short_key, block_bits=48):
+    assert block_bits in {48, 96}
+
     # Compute length for counter.
     if block_bits == 48:
         counter = [0, 0, 0, 0, 0, 0]
@@ -40,6 +39,7 @@ def enc(plaintext, long_key, short_key, block_bits=48):
         counter = [0, 0, 0, 0, 0, 0, 0]
     else:
         import sys
+
         sys.stderr.write("ERROR: invalid block_bits\n")
         sys.exit(-1)
 
@@ -73,17 +73,68 @@ def enc(plaintext, long_key, short_key, block_bits=48):
     return bits2num(text)
 
 
+def decrypt(ciphertext, long_key, short_key, block_bits=48):
+    assert block_bits in {48, 96}
+
+    # Compute length for counter
+    if block_bits == 48:
+        counter = [0, 0, 0, 0, 0, 0]
+    elif block_bits == 96:
+        counter = [0, 0, 0, 0, 0, 0, 0]
+
+    iterations = block_bits
+
+    counters = []
+
+    for i in range(iterations):
+        counter = _update_round_counter(counter.copy())
+        counters.append(counter)
+
+    text = num2bits(ciphertext, block_bits)
+    round_key = num2bits(long_key, block_bits)
+    perm_key = num2bits(short_key, block_bits * 2 // 3)
+
+    state = [None] * block_bits  # temp variable
+
+    for round in range(iterations):
+        for i in range(block_bits // 3):
+            after = bits2num(text[3 * i : 3 * i + 3])
+            row = bits2num(perm_key[2 * i : 2 * i + 2])
+
+            column = -1
+            for j in range(len(_sbox[row])):
+                if _sbox[row][j] == after:
+                    column = j
+                    break
+
+            before = num2bits(column, 3)
+            for k in range(3):
+                state[3 * i + k] = before[k]
+
+        for county in range(len(counters[iterations - round - 1])):
+            state[county] = state[county] ^ counters[iterations - round - 1][county]
+
+        for i in range(block_bits - 1):
+            text[i] = state[(3 * i) % (block_bits - 1)]
+        text[block_bits - 1] = state[block_bits - 1]
+
+        for i in range(block_bits):
+            text[i] ^= round_key[i]
+
+    return bits2num(text)
+
+
 if __name__ == "__main__":
     plaintext = 0x4C847555C35B
     key = 0xC28895BA327B
     permkey = 0x69D2CDB6
 
-    ciphertext = enc(plaintext, key, permkey)
+    ciphertext = encrypt(plaintext, key, permkey)
 
     print("plain =", hex(plaintext))
     print("key =", hex(key))
     print("permkey =", hex(permkey))
     print("cipher =", hex(ciphertext))
 
-    plaintext = enc(ciphertext, key, permkey)
+    plaintext = decrypt(ciphertext, key, permkey)
     print("plain =", hex(plaintext))

@@ -18,7 +18,7 @@ def encrypt_wrapper(plaintext: bytes) -> bytes:
     plaintext = int.from_bytes(plaintext, "big")
     long_key = int.from_bytes(KEY, "big")
     short_key = 0x69D2CDB6
-    ciphertext = print_cipher.enc(
+    ciphertext = print_cipher.encrypt(
         plaintext, long_key, short_key, block_bits=block_size * 8
     )
     return ciphertext.to_bytes(nbytes, "big")
@@ -29,7 +29,7 @@ def decrypt_wrapper(ciphertext: bytes) -> bytes:
     ciphertext = int.from_bytes(ciphertext, "big")
     long_key = int.from_bytes(KEY, "big")
     short_key = 0x69D2CDB6
-    plaintext = print_cipher.enc(
+    plaintext = print_cipher.decrypt(
         ciphertext, long_key, short_key, block_bits=block_size * 8
     )
     return plaintext.to_bytes(nbytes, "big")

@@ -11,6 +11,7 @@ _klein = KLEIN(size=block_size * 8)
 
 
 def encrypt_wrapper(plaintext: bytes) -> bytes:
+    # return _klein.encrypt(_key, int.from_bytes(plaintext, "big")).to_bytes(len(plaintext))
     ciphertext = bytearray()
     for i in range(0, len(plaintext), block_size):
         block = int.from_bytes(plaintext[i : i + block_size], "big")
@@ -20,6 +21,7 @@ def encrypt_wrapper(plaintext: bytes) -> bytes:
 
 
 def decrypt_wrapper(ciphertext: bytes) -> bytes:
+    # return _klein.encrypt(_key, int.from_bytes(ciphertext, "big")).to_bytes(len(ciphertext))
     plaintext = bytearray()
     for i in range(0, len(ciphertext), block_size):
         block = int.from_bytes(ciphertext[i : i + block_size], "big")

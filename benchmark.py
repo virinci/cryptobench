@@ -24,7 +24,7 @@ def benchmark_sender(module, host: str, port: int) -> cryterion.Cryterion:
     )
 
     cryterion.sendall(C, host, port)
-    print(f"\nPlaintext: {P[:THUMBNAIL_SIZE]}...")
+    print(f"Plaintext: {P[:THUMBNAIL_SIZE]}...")
     print(f"Ciphertext: {C[:THUMBNAIL_SIZE]}...")
     print(f"Plaintext Checksum: {checksum}")
 
@@ -44,7 +44,7 @@ def benchmark_receiver(module, host: str, port: int) -> cryterion.Cryterion:
     D = cryterion.unpad(D)
     checksum = hashlib.sha256(D).hexdigest()
 
-    print(f"\nCiphertext: {C[:THUMBNAIL_SIZE]}...")
+    print(f"Ciphertext: {C[:THUMBNAIL_SIZE]}...")
     print(f"Plaintext: {D[:THUMBNAIL_SIZE]}...")
     print(f"Plaintext Checksum: {checksum}")
 
@@ -52,11 +52,11 @@ def benchmark_receiver(module, host: str, port: int) -> cryterion.Cryterion:
 
 
 if __name__ == "__main__":
-    import benchmark_tea
+    import benchmark_ascon
 
     PORT = 8000
     if (HOST := os.getenv("RECEIVER")) is not None:
-        benchmark_sender(benchmark_tea, HOST, PORT)
+        benchmark_sender(benchmark_ascon, HOST, PORT)
     else:
         HOST = "0.0.0.0"
-        benchmark_receiver(benchmark_tea, HOST, PORT)
+        benchmark_receiver(benchmark_ascon, HOST, PORT)

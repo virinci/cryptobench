@@ -1,25 +1,29 @@
 # cryptobench
+A project for benchmarking LWC algorithms.
+
+NOTE: All the sub-directories contain the implementation files of crypto algorithms. The implementations are taken from the internet.
 
 ## Instructions
 ```shell
 # Setup cyclops on RPI.
 $ ./run.sh
 
-# Run any of the benchmark_*.py on the receiver device.
-$ python3 benchmark_speck.py
+# Import the correct modules in benchmark.py on both the sender and the receiver side.
+# On the receiver device execute:
+$ python3 benchmark.py
 
 # After running the script on receiver device, run the same script on the sender device.
 # RECEIVER is the IP of receiver device.
 # PLAINTEXT is the size of the random plaintext to generate.
-$ RECEIVER='192.168.1.12' PLAINTEXT=1000 python3 benchmark_speck.py
+$ RECEIVER='192.168.1.12' PLAINTEXT=1000 python3 benchmark.py
 ```
 
 ## To-Do
+- [x] Print only has encryption function, no decryption.
+- [x] Abstract out benchmarking functionality from each algorithm
 - [ ] Camellia code is not in Python.
 - [ ] Klein only has encryption function, no decryption.
-- [x] Print only has encryption function, no decryption.
 - [ ] Rectangle code is not in Python.
-- [x] Abstract out benchmarking functionality from each algorithm
 
 ## Dependencies
 - `pip install hwcounter`
@@ -36,3 +40,6 @@ $ RECEIVER='192.168.1.12' PLAINTEXT=1000 python3 benchmark_speck.py
 - <https://github.com/inmcm/Simon_Speck_Ciphers/tree/master/Python/simonspeckciphers>
 - [The SIMON and SPECK Families of Lightweight Block Ciphers](https://eprint.iacr.org/2013/404)
 - <https://github.com/bozhu/NSA-ciphers/>
+
+### Algorithms Source
+- [ascon](https://github.com/meichlseder/pyascon/)

@@ -6,6 +6,7 @@ from importlib import import_module
 import socket
 from typing import Any
 import random
+from outbench import Outbench
 
 
 def sendall_to_socket(data: bytes, s):
@@ -48,6 +49,7 @@ if __name__ == "__main__":
     PORT = 8823
 
     if (HOST := os.getenv("RECEIVER")) is not None:
+        outb = Outbench()
         # Create the sender socket
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((HOST, PORT))
@@ -75,11 +77,13 @@ if __name__ == "__main__":
                 loaded_modules[algo],
                 lambda c: sendall_to_socket(c, s),
             )
+            outb.push_benchmarks(algo, benchmarks)
             ack = recvall_from_socket(conn)
             assert ack == b"ACK"
 
         while True:
-            algo = random.choice(ALGOS)
+            # algo = random.choice(ALGOS)
+            algo = outb.pick_best()
             # Send name of algo to receiver
             print(f"trying to send name of {algo = } to  {HOST = } {PORT = }")
             # cryterion.sendall(item.encode(), HOST, PORT)
@@ -95,16 +99,17 @@ if __name__ == "__main__":
                 loaded_modules[algo],
                 lambda c: sendall_to_socket(c, s),
             )
+            outb.push_benchmarks(algo, benchmarks)
             ack = recvall_from_socket(conn)
             assert ack == b"ACK"
-        # print(benchmarks)
-        # add data to table
-        # benchmark_sender(benchmark_module, HOST, PORT)
-        # find rank 1 from table
-        # send name of algo to receiver
-        # wait for ack
-        # benchmark_sender(algo,H,P)
-        # update table
+            # print(benchmarks)
+            # add data to table
+            # benchmark_sender(benchmark_module, HOST, PORT)
+            # find rank 1 from table
+            # send name of algo to receiver
+            # wait for ack
+            # benchmark_sender(algo,H,P)
+            # update table
         s.close()
     else:
         # receiver's section

@@ -1,0 +1,2 @@
+git+https://github.com/virinci/cryterion.git@main
+hwcounter

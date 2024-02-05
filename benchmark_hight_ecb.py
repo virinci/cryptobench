@@ -10,11 +10,11 @@ block_size = 8
 
 
 def encrypt_wrapper(plaintext: bytes) -> bytes:
-    return bytes(ecb_hight_encryption(plaintext, IV, _MK))
+    return bytes(ecb_hight_encryption(plaintext, _MK))
 
 
 def decrypt_wrapper(ciphertext: bytes) -> bytes:
-    return bytes(ecb_hight_decryption(ciphertext, IV, _MK))
+    return bytes(ecb_hight_decryption(ciphertext, _MK))
 
 
 source_files = (__file__, "hight/hight_ECB.py", "hight/hight.py")

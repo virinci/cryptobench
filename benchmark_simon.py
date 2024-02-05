@@ -1,5 +1,5 @@
 from simon.simon import SimonCipher
-
+import cryterion
 
 _MODE = "ECB"
 # fmt: off

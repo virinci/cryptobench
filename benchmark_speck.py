@@ -1,5 +1,5 @@
 from speck.speck import SpeckCipher
-
+import cryterion
 
 _MODE = "ECB"
 # fmt: off

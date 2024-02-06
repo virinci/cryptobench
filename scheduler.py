@@ -64,15 +64,11 @@ if __name__ == "__main__":
         for algo in ALGOS:
             # Send name of algo to receiver
             print(f"trying to send name of {algo = } to  {HOST = } {PORT = }")
-            # cryterion.sendall(item.encode(), HOST, PORT)
             sendall_to_socket(algo.encode(), s)
 
             ack = recvall_from_socket(conn)
             assert ack == b"ACK"
 
-            # wait for acknowledgement from receiver
-            # algo = cryterion.recvall(HOST, PORT + 1)
-            # print(algo)
             benchmarks = benchmark_sender(
                 loaded_modules[algo],
                 lambda c: sendall_to_socket(c, s),
@@ -82,8 +78,7 @@ if __name__ == "__main__":
             assert ack == b"ACK"
 
         while True:
-            # algo = random.choice(ALGOS)
-            algo = outb.pick_best()
+            algo = outb.pick_best(verbose=True)
             # Send name of algo to receiver
             print(f"trying to send name of {algo = } to  {HOST = } {PORT = }")
             # cryterion.sendall(item.encode(), HOST, PORT)
@@ -92,9 +87,6 @@ if __name__ == "__main__":
             ack = recvall_from_socket(conn)
             assert ack == b"ACK"
 
-            # wait for acknowledgement from receiver
-            # algo = cryterion.recvall(HOST, PORT + 1)
-            # print(algo)
             benchmarks = benchmark_sender(
                 loaded_modules[algo],
                 lambda c: sendall_to_socket(c, s),
@@ -102,14 +94,6 @@ if __name__ == "__main__":
             outb.push_benchmarks(algo, benchmarks)
             ack = recvall_from_socket(conn)
             assert ack == b"ACK"
-            # print(benchmarks)
-            # add data to table
-            # benchmark_sender(benchmark_module, HOST, PORT)
-            # find rank 1 from table
-            # send name of algo to receiver
-            # wait for ack
-            # benchmark_sender(algo,H,P)
-            # update table
         s.close()
     else:
         # receiver's section

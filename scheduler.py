@@ -9,19 +9,17 @@ import random
 from outbench import Outbench
 
 
-def sendall_to_socket(data: bytes, s):
+def send_sized_to_socket(data: bytes, s):
+    length = len(data).to_bytes(4, "big")
+    s.sendall(length)
     s.sendall(data)
 
 
-def recvall_from_socket(conn, max_bufsize=100 * 1024) -> bytes:
-    received = b""
-
-    while True:
-        data = conn.recv(4096)
-        received += data
-        if len(data) != 4096 or len(received) >= max_bufsize:
-            break
-
+def recv_sized_from_socket(conn, max_bufsize=100 * 1024) -> bytes:
+    length = int.from_bytes(conn.recv(4), "big")
+    assert length <= max_bufsize
+    received = conn.recv(length)
+    assert len(received) == length
     return received
 
 
@@ -39,17 +37,17 @@ ALGOS = [
 ]
 
 if __name__ == "__main__":
-
-    # load all algo modules in an array
+    # Load all algo modules in an array
     loaded_modules = {}
     for algo in ALGOS:
         loaded_modules[algo] = import_module(f"benchmark_{algo}")
 
-    print(loaded_modules)
-    PORT = 8823
+    # print(loaded_modules)
+    PORT = 8828
 
     if (HOST := os.getenv("RECEIVER")) is not None:
-        outb = Outbench()
+        outbench = Outbench()
+
         # Create the sender socket
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((HOST, PORT))
@@ -58,50 +56,43 @@ if __name__ == "__main__":
         s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s2.bind(("0.0.0.0", PORT + 1))
         s2.listen()
+
         conn, (sender_host, sender_port) = s2.accept()
         print(sender_host, sender_port)
 
         for algo in ALGOS:
             # Send name of algo to receiver
-            print(f"trying to send name of {algo = } to  {HOST = } {PORT = }")
-            sendall_to_socket(algo.encode(), s)
-
-            ack = recvall_from_socket(conn)
-            assert ack == b"ACK"
+            print(f"Trying to send name of {algo = } to  {HOST = } {PORT = }")
+            send_sized_to_socket(algo.encode(), s)
+            assert recv_sized_from_socket(conn) == b"ACK"
 
             benchmarks = benchmark_sender(
                 loaded_modules[algo],
-                lambda c: sendall_to_socket(c, s),
+                lambda c: send_sized_to_socket(c, s),
             )
-            outb.push_benchmarks(algo, benchmarks)
-            ack = recvall_from_socket(conn)
-            assert ack == b"ACK"
+            assert recv_sized_from_socket(conn) == b"ACK"
+            outbench.push_benchmarks(algo, benchmarks)
 
         while True:
-            algo = outb.pick_best(verbose=True)
+            algo = outbench.pick_best(verbose=True)
             # Send name of algo to receiver
-            print(f"trying to send name of {algo = } to  {HOST = } {PORT = }")
-            # cryterion.sendall(item.encode(), HOST, PORT)
-            sendall_to_socket(algo.encode(), s)
-
-            ack = recvall_from_socket(conn)
-            assert ack == b"ACK"
+            print(f"Trying to send name of {algo = } to  {HOST = } {PORT = }")
+            send_sized_to_socket(algo.encode(), s)
+            assert recv_sized_from_socket(conn) == b"ACK"
 
             benchmarks = benchmark_sender(
                 loaded_modules[algo],
-                lambda c: sendall_to_socket(c, s),
+                lambda c: send_sized_to_socket(c, s),
             )
-            outb.push_benchmarks(algo, benchmarks)
-            ack = recvall_from_socket(conn)
-            assert ack == b"ACK"
+            assert recv_sized_from_socket(conn) == b"ACK"
+            outbench.push_benchmarks(algo, benchmarks)
         s.close()
     else:
-        # receiver's section
-
         # Create the receiver socket
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind(("0.0.0.0", PORT))
         s.listen()
+
         conn, (sender_host, sender_port) = s.accept()
         print(sender_host, sender_port)
 
@@ -111,12 +102,15 @@ if __name__ == "__main__":
 
         while True:
             # Wait infinitely till receive name of algo
-            algo_name_bytes = conn.recv(1024)
+            algo_name_bytes = recv_sized_from_socket(conn)
+            send_sized_to_socket(b"ACK", s2)
             print(f"Received name {algo_name_bytes = }")
+
             algo: str = algo_name_bytes.decode()
-            sendall_to_socket(b"ACK", s2)
             print(f"{algo = }")
 
             print(f"Now to receive: {algo}")
-            benchmark_receiver(loaded_modules[algo], lambda: recvall_from_socket(conn))
-            sendall_to_socket(b"ACK", s2)
+            benchmark_receiver(
+                loaded_modules[algo], lambda: recv_sized_from_socket(conn)
+            )
+            send_sized_to_socket(b"ACK", s2)

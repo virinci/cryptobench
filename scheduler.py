@@ -43,14 +43,14 @@ if __name__ == "__main__":
         loaded_modules[algo] = import_module(f"benchmark_{algo}")
 
     # print(loaded_modules)
-    PORT = 8828
+    PORT = 9828
 
     if (HOST := os.getenv("RECEIVER")) is not None:
-        outbench = Outbench()
 
         # Create the sender socket
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((HOST, PORT))
+        send_sized_to_socket(b"ACK", s)
 
         # Create the receiver socket
         s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -59,35 +59,29 @@ if __name__ == "__main__":
 
         conn, (sender_host, sender_port) = s2.accept()
         print(sender_host, sender_port)
-
-        for algo in ALGOS:
-            # Send name of algo to receiver
-            print(f"Trying to send name of {algo = } to  {HOST = } {PORT = }")
-            send_sized_to_socket(algo.encode(), s)
-            assert recv_sized_from_socket(conn) == b"ACK"
-
-            benchmarks = benchmark_sender(
-                loaded_modules[algo],
-                lambda c: send_sized_to_socket(c, s),
-            )
-            assert recv_sized_from_socket(conn) == b"ACK"
-            outbench.push_benchmarks(algo, benchmarks)
+        assert recv_sized_from_socket(conn) == b"ACK"
 
         while True:
-            algo = outbench.pick_best(verbose=True)
-            # Send name of algo to receiver
-            print(f"Trying to send name of {algo = } to  {HOST = } {PORT = }")
-            send_sized_to_socket(algo.encode(), s)
-            assert recv_sized_from_socket(conn) == b"ACK"
+            # receive the name of algo
+            algo_name_bytes = recv_sized_from_socket(conn)
+            send_sized_to_socket(b"ACK", s)
+            print(f"Received name {algo_name_bytes = }")
 
-            benchmarks = benchmark_sender(
+            algo: str = algo_name_bytes.decode()
+            print(f"{algo = }")
+
+            print(f"Now to encrypt and send: {algo}")
+
+            benchmark_sender(
                 loaded_modules[algo],
                 lambda c: send_sized_to_socket(c, s),
             )
             assert recv_sized_from_socket(conn) == b"ACK"
-            outbench.push_benchmarks(algo, benchmarks)
+
         s.close()
     else:
+        outbench = Outbench()
+
         # Create the receiver socket
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind(("0.0.0.0", PORT))
@@ -95,22 +89,37 @@ if __name__ == "__main__":
 
         conn, (sender_host, sender_port) = s.accept()
         print(sender_host, sender_port)
+        assert recv_sized_from_socket(conn) == b"ACK"
 
         # Create the sender socket
         s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s2.connect((sender_host, PORT + 1))
+        send_sized_to_socket(b"ACK", s2)
 
-        while True:
-            # Wait infinitely till receive name of algo
-            algo_name_bytes = recv_sized_from_socket(conn)
-            send_sized_to_socket(b"ACK", s2)
-            print(f"Received name {algo_name_bytes = }")
-
-            algo: str = algo_name_bytes.decode()
-            print(f"{algo = }")
-
-            print(f"Now to receive: {algo}")
-            benchmark_receiver(
+        for algo in ALGOS:
+            # Send name of algo to encrypter[sender]
+            print(f"Trying to send name of {algo = } to  {HOST = } {PORT = }")
+            send_sized_to_socket(algo.encode(), s2)
+            assert recv_sized_from_socket(conn) == b"ACK"
+            # now sender will encrypt and send data
+            benchmarks = benchmark_receiver(
                 loaded_modules[algo], lambda: recv_sized_from_socket(conn)
             )
             send_sized_to_socket(b"ACK", s2)
+
+            # assert recv_sized_from_socket(conn) == b"ACK"
+            outbench.push_benchmarks(algo, benchmarks)
+
+        while True:
+            # TODO: send the name of algo
+            algo = outbench.pick_best(verbose=True)
+
+            print(f"Trying to send name of {algo = } to  {HOST = } {PORT = }")
+            send_sized_to_socket(algo.encode(), s2)
+            assert recv_sized_from_socket(conn) == b"ACK"
+            # receive the algo
+            print(f"Now to receive: {algo}")
+            benchmarks = benchmark_receiver(
+                loaded_modules[algo], lambda: recv_sized_from_socket(conn)
+            )
+            outbench.push_benchmarks(benchmarks)
